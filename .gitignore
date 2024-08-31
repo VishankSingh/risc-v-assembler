@@ -1,0 +1,5 @@
+src/*.o
+*.hex
+riscv_asm
+.vscode/
+.ideao/
