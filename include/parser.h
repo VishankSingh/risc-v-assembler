@@ -12,27 +12,28 @@
 #include "instructions.h"
 #include "tokens.h"
 
+#define uint unsigned int
+
 typedef struct Parser {
-    token_list_struct *token_list;
-    char *filename;
-} parser_struct;
+    token_list_s *token_list;
+} parser_s;
 
 typedef struct LabelNode {
     char *label_name;
-    unsigned int instruction_number;
+    uint instruction_number;
     struct LabelNode *next;
 } label_node;
 
 typedef struct LabelTable {
-    unsigned int size;
+    uint size;
     label_node **table;
 } label_table;
 
-label_table *init_label_table(unsigned int size);
+label_table *init_label_table(uint size);
 
-label_node *init_label_node(char *label_name, unsigned int instruction_number);
+label_node *init_label_node(char *label_name, uint instruction_number);
 
-void insert_label(label_table *table, char *label_name, unsigned int instruction_number);
+void insert_label(label_table *table, char *label_name, uint instruction_number);
 
 int search_label(label_table *table, char *label_name);
 
@@ -40,10 +41,10 @@ void print_label_table(label_table *table);
 
 void free_label_table(label_table *table);
 
-parser_struct *init_parser(token_list_struct *token_list, char *filename);
+parser_s *init_parser(token_list_s *token_list);
 
-void parse(parser_struct *parser);
+void parse(parser_s *parser);
 
-void free_parser(parser_struct *parser);
+void free_parser(parser_s *parser);
 
 #endif // PARSER_H

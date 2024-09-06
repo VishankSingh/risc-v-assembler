@@ -6,18 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "../include/globals.h"
 #include "../include/instructions.h"
 #include "../include/lexer.h"
 #include "../include/utils.h"
 
-lexer_struct *init_lexer(char *filename, token_list_struct *token_list) {
-    lexer_struct *lexer = malloc(sizeof(lexer_struct));
+lexer_s *init_lexer(token_list_s *token_list) {
+    lexer_s *lexer = malloc(sizeof(lexer_s));
     lexer->token_list = token_list;
-    lexer->filename = filename;
-    lexer->file = fopen(lexer->filename, "r");
+    lexer->file = fopen(input_file_, "r");
     if (lexer->file == NULL) {
-        printf("[-] Error: Unable to open file %s\n", lexer->filename);
+        printf("[-] Error: Unable to open file %s\n", input_file_);
         return NULL;
     }
     lexer->line = NULL;
@@ -27,7 +27,7 @@ lexer_struct *init_lexer(char *filename, token_list_struct *token_list) {
     return lexer;
 }
 
-_Bool tokenize_line(lexer_struct *lexer) {
+_Bool tokenize_line(lexer_s *lexer) {
     size_t i = 0;
     _Bool error = 0;
     unsigned int initial_size = lexer->token_list->size;
@@ -36,10 +36,10 @@ _Bool tokenize_line(lexer_struct *lexer) {
         if ((lexer->line[i] == ' ') || (lexer->line[i] == '\t') || (lexer->line[i] == ',')) {
             i++;
             continue;
-        } else if (lexer->line[i] == '#') {
+        } else if (lexer->line[i] == '#' || lexer->line[i] == ';') {
             break;
         } else if (lexer->line[i] == '(') {
-            token_struct *token =
+            token_s *token =
                 init_token(TOKEN_L_PAREN, lexer->line_number, lexer->character_number, lexer->instruction_number, "(");
             lexer->token_list->list[lexer->token_list->index++] = *token;
             lexer->token_list->size++;
@@ -47,7 +47,7 @@ _Bool tokenize_line(lexer_struct *lexer) {
             i++;
             continue;
         } else if (lexer->line[i] == ')') {
-            token_struct *token =
+            token_s *token =
                 init_token(TOKEN_R_PAREN, lexer->line_number, lexer->character_number, lexer->instruction_number, ")");
             lexer->token_list->list[lexer->token_list->index++] = *token;
             lexer->token_list->size++;
@@ -64,9 +64,9 @@ _Bool tokenize_line(lexer_struct *lexer) {
                 j++;
             }
             token_name[j] = '\0';
-            if ((token_name[j - 1] == ':') && (j > 1)) {
+            if ((j > 1) && (token_name[j - 1] == ':') && (!isdigit(token_name[0]))) {
                 token_name[j - 1] = '\0';
-                token_struct
+                token_s
                     *token =
                     init_token(TOKEN_LABEL,
                                lexer->line_number,
@@ -78,7 +78,7 @@ _Bool tokenize_line(lexer_struct *lexer) {
                 free(token);
                 continue;
             } else if (get_register_value(token_name) != NULL) {
-                token_struct
+                token_s
                     *token =
                     init_token(TOKEN_REGISTER,
                                lexer->line_number,
@@ -89,9 +89,7 @@ _Bool tokenize_line(lexer_struct *lexer) {
                 lexer->token_list->size++;
                 free(token);
                 continue;
-            } else if (is_valid_binary(token_name) || is_valid_decimal(token_name)
-                || is_valid_hexadecimal(token_name)) {
-                // TODO: handle minus and plus signs
+            } else if (is_valid_binary(token_name) || is_valid_decimal(token_name) || is_valid_hexadecimal(token_name)) {
                 long decimal_value;
                 if (is_valid_binary(token_name)) {
                     token_name += 2;
@@ -102,7 +100,7 @@ _Bool tokenize_line(lexer_struct *lexer) {
                     decimal_value = strtol(token_name, NULL, 16);
                     sprintf(token_name, "%ld", decimal_value);
                 }
-                token_struct
+                token_s
                     *token =
                     init_token(TOKEN_IMMEDIATE,
                                lexer->line_number,
@@ -114,7 +112,7 @@ _Bool tokenize_line(lexer_struct *lexer) {
                 free(token);
                 continue;
             } else if (check_instruction_type(token_name) != 'O') {
-                token_struct
+                token_s
                     *token =
                     init_token(TOKEN_INSTRUCTION,
                                lexer->line_number,
@@ -125,9 +123,9 @@ _Bool tokenize_line(lexer_struct *lexer) {
                 lexer->token_list->size++;
                 free(token);
                 continue;
-            } else if ((lexer->token_list->list[lexer->token_list->index - 1].token_type == TOKEN_INSTRUCTION)
-                || (lexer->token_list->list[lexer->token_list->index - 1].token_type == TOKEN_REGISTER)) {
-                token_struct
+            } else if (lexer->token_list->index > 0 && isalpha(token_name[0])
+                ) {
+                token_s
                     *token =
                     init_token(TOKEN_LABEL_REF,
                                lexer->line_number,
@@ -141,43 +139,43 @@ _Bool tokenize_line(lexer_struct *lexer) {
             }
             free(token_name);
         }
-        printf(RED "[error]" RESET " %s:%d:%d: Unknown token type\n",
-               lexer->filename,
+        printf(BOLD "%s:%d:%d: " RED "[error]" RESET " Unexpected token\n",
+               input_file_,
                lexer->line_number,
                lexer->character_number);
-        printf("%6d| %s\n", lexer->line_number, lexer->line);
+        printf("%5d | %s\n", lexer->line_number, lexer->line);
         printf("      |");
         print_space_n_times(lexer->character_number);
         printf(RED "^\n" RESET);
 
         error = 1;
-        error_code = 1;
+        error_code_ = 1;
         break;
     }
 
-    _Bool only_labels_or_parentheses = 1;
-    // check if all tokens are labels or parentheses
+    _Bool if_instruction = 0;
+
     for (unsigned int j = initial_size; j < lexer->token_list->index; j++) {
-        if (lexer->token_list->list[j].token_type != TOKEN_LABEL
-            && lexer->token_list->list[j].token_type != TOKEN_L_PAREN
-            && lexer->token_list->list[j].token_type != TOKEN_R_PAREN) {
-            only_labels_or_parentheses = 0;
+        if (lexer->token_list->list[j].token_type == TOKEN_INSTRUCTION) {
+            if_instruction = 1;
             break;
         }
     }
-    if (only_labels_or_parentheses) {
-        // subtract 1 from instruction number as only labels or parentheses are not "instructions"
+
+    if (!if_instruction) {
         lexer->instruction_number--;
         return error;
     }
 
+    
+
     return error;
 }
 
-void lex(lexer_struct *lexer) {
+void lex(lexer_s *lexer) {
     lexer->line = malloc(LEXER_LINE_BUFFER * sizeof(char));
     if (!lexer->line) {
-        printf(RED "[error]" RESET "%s:1: failed to allocate memory for line buffer\n", lexer->filename);
+        printf(RED "[error]" RESET "%s:1: failed to allocate memory for line buffer\n", input_file_);
         fclose(lexer->file);
         free(lexer);
         return;
@@ -200,7 +198,7 @@ void lex(lexer_struct *lexer) {
             continue;
         }
 
-        if (lexer->line[i] == '#') {
+        if (lexer->line[i] == '#' || lexer->line[i] == ';') {
             continue;
         }
 
@@ -215,7 +213,7 @@ void lex(lexer_struct *lexer) {
     free(lexer->line);
 }
 
-void free_lexer(lexer_struct *lexer) {
+void free_lexer(lexer_s *lexer) {
     fclose(lexer->file);
     free(lexer);
 }

@@ -10,5 +10,6 @@
 
 #include "../include/globals.h"
 
-char *output_file = "output.hex";
-_Bool error_code = 0;
+char *input_file_ = "input.s";
+char *output_file_ = "output.hex";
+_Bool error_code_ = 0;

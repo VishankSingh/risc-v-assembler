@@ -7,6 +7,9 @@
 #define INSTRUCTIONS_H
 
 #include <stdint.h>
+#include "tokens.h"
+
+#define uint unsigned int
 
 typedef struct R_Type {
     uint32_t funct7: 7;
@@ -46,6 +49,8 @@ extern R_Type and_instruction;
 extern R_Type sll_instruction;
 extern R_Type srl_instruction;
 extern R_Type sra_instruction;
+extern R_Type slt_instruction;
+extern R_Type sltu_instruction;
 
 // I-Type Instructions //
 extern I_Type addi_instruction;
@@ -55,6 +60,8 @@ extern I_Type andi_instruction;
 extern I_Type slli_instruction;
 extern I_Type srli_instruction;
 extern I_Type srai_instruction;
+extern I_Type slti_instruction;
+extern I_Type sltiu_instruction;
 extern I_Type lb_instruction;
 extern I_Type lh_instruction;
 extern I_Type lw_instruction;
@@ -63,6 +70,8 @@ extern I_Type lbu_instruction;
 extern I_Type lhu_instruction;
 extern I_Type lwu_instruction;
 extern I_Type jalr_instruction;
+extern I_Type ecall_instruction;
+extern I_Type ebreak_instruction;
 
 // S-Type Instructions //
 extern S_Type sb_instruction;
@@ -94,14 +103,24 @@ extern int j_format[3];
 
 char check_instruction_type(char *instruction);
 
-uint32_t R_format_binary_code(R_Type instruction, unsigned int rd, unsigned int rs1, unsigned int rs2);
-uint32_t I_format_binary_code(I_Type instruction, unsigned int rd, unsigned int rs1, int imm);
-uint32_t S_format_binary_code(S_Type instruction, unsigned int rs1, unsigned int rs2, unsigned int imm);
-uint32_t B_format_binary_code(B_Type instruction, unsigned int rs1, unsigned int rs2, int imm);
-uint32_t U_format_binary_code(U_Type instruction, unsigned int rd, int imm);
-uint32_t J_format_binary_code(J_Type instruction, unsigned int rd, int imm);
+_Bool valid_R_format(token_list_s *instruction_tokens);
+_Bool valid_I_bracket_format(token_list_s *instruction_tokens);
+_Bool valid_I_format(token_list_s *instruction_tokens);
+_Bool valid_S_format(token_list_s *instruction_tokens);
+_Bool valid_B_imm_format(token_list_s *instruction_tokens);
+_Bool valid_B_label_format(token_list_s *instruction_tokens);
+_Bool valid_U_format(token_list_s *instruction_tokens);
+_Bool valid_J_imm_format(token_list_s *instruction_tokens);
+_Bool valid_J_label_format(token_list_s *instruction_tokens);
 
-void generate_bit_string(char *code, unsigned int rd, unsigned int rs1, unsigned int rs2, int imm );
+uint32_t R_format_binary_code(R_Type instruction, uint rd, uint rs1, uint rs2);
+uint32_t I_format_binary_code(I_Type instruction, uint rd, uint rs1, int imm);
+uint32_t S_format_binary_code(S_Type instruction, uint rs1, uint rs2, uint imm);
+uint32_t B_format_binary_code(B_Type instruction, uint rs1, uint rs2, int imm);
+uint32_t U_format_binary_code(U_Type instruction, uint rd, int imm);
+uint32_t J_format_binary_code(J_Type instruction, uint rd, int imm);
+
+void generate_bit_string(char *code, uint rd, uint rs1, uint rs2, int imm );
 
 
 #endif // INSTRUCTIONS_H

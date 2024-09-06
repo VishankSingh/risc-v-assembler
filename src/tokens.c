@@ -9,12 +9,14 @@
 
 #include "../include/tokens.h"
 
-token_struct *init_token(int token_type,
-                         unsigned int line_number,
-                         unsigned int character_number,
-                         unsigned int instruction_number,
+#define uint unsigned int
+
+token_s *init_token(int token_type,
+                         uint line_number,
+                         uint character_number,
+                         uint instruction_number,
                          char *value) {
-    token_struct *token = malloc(sizeof(token_struct));
+    token_s *token = malloc(sizeof(token_s));
     token->token_type = token_type;
     token->line_number = line_number;
     token->character_number = character_number;
@@ -23,15 +25,15 @@ token_struct *init_token(int token_type,
     return token;
 }
 
-token_list_struct *init_token_list_struct(unsigned int size) {
-    token_list_struct *token_list = malloc(sizeof(token_list_struct));
+token_list_s *init_token_list_s(uint size) {
+    token_list_s *token_list = malloc(sizeof(token_list_s));
     token_list->index = 0;
     token_list->size = 0;
-    token_list->list = malloc(size * sizeof(token_struct));
+    token_list->list = malloc(size * sizeof(token_s));
     return token_list;
 }
 
-void print_token(token_struct *token) {
+void print_token(token_s *token) {
     switch (token->token_type) {
         case TOKEN_INSTRUCTION:
             printf("<%d:%d:TOKEN_INSTRUCTION:%s>\n",
@@ -80,10 +82,10 @@ void print_token(token_struct *token) {
     }
 }
 
-void print_token_list(token_list_struct *token_list) {
+void print_token_list(token_list_s *token_list) {
     size_t i = 0;
     while (i < token_list->index) {
-        unsigned int j = token_list->list[i].instruction_number;
+        uint j = token_list->list[i].instruction_number;
         while (j == token_list->list[i].instruction_number) {
             print_token(&token_list->list[i]);
             i++;
@@ -92,7 +94,7 @@ void print_token_list(token_list_struct *token_list) {
     }
 }
 
-void free_token_list(token_list_struct *token_list) {
+void free_token_list(token_list_s *token_list) {
     free(token_list->list);
     free(token_list);
 }

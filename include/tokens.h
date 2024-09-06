@@ -6,6 +6,8 @@
 #ifndef TOKENS_H
 #define TOKENS_H
 
+#define uint unsigned int
+
 typedef struct Token {
     enum {
         TOKEN_INSTRUCTION,
@@ -16,27 +18,27 @@ typedef struct Token {
         TOKEN_L_PAREN,
         TOKEN_R_PAREN
     } token_type;
-    unsigned int line_number;
-    unsigned int character_number;
-    unsigned int instruction_number;
+    uint line_number;
+    uint character_number;
+    uint instruction_number;
     char *value;
-} token_struct;
+} token_s;
 
 typedef struct TokenList {
-    unsigned int index;
-    unsigned int size;
-    token_struct *list;
-} token_list_struct;
+    uint index;
+    uint size;
+    token_s *list;
+} token_list_s;
 
-token_struct *init_token(int token_type, unsigned int line_number, unsigned int character_number, unsigned int instruction_number, char *value);
+token_s *init_token(int token_type, uint line_number, uint character_number, uint instruction_number, char *value);
 
-void print_token(token_struct *token);
+void print_token(token_s *token);
 
-token_list_struct *init_token_list_struct(unsigned int size);
+token_list_s *init_token_list_s(uint size);
 
-void print_token_list(token_list_struct *token_list);
+void print_token_list(token_list_s *token_list);
 
-void free_token_list(token_list_struct *token_list);
+void free_token_list(token_list_s *token_list);
 
 char *get_register_value(char *register_name);
 

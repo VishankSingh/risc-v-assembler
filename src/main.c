@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "../include/globals.h"
+#include "../include/utils.h"
 #include "../include/assembler.h"
 
 int main(int argc, char *argv[]) {
@@ -14,12 +15,14 @@ int main(int argc, char *argv[]) {
         printf("[-] Usage: %s <filename>\n", argv[0]);
         return 1;
     } else {
+        
         for (int i = 1; i < argc; i++) {
             if (strncmp(argv[i], "-o=", 9) == 0) {
-                output_file = argv[i] + 9;
+                output_file_ = argv[i] + 9;
             }
         }
-        assemble(argv[1], output_file);
+        input_file_ = argv[1];
+        assemble(output_file_);
     }
     // ISSUE: if two labels are together without space, takes them as 1 label, label1:label2: is one label valued "label1:label2"
     // ISSUE: if empty brackets it takes them as one instruction [SOLVED]

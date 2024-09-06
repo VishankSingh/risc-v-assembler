@@ -9,22 +9,23 @@
 #include <stdio.h>
 #include "tokens.h"
 
+#define uint unsigned int
+
 typedef struct Lexer {
-    token_list_struct *token_list;
-    char *filename;
+    token_list_s *token_list;
     FILE *file;
     char *line;
-    unsigned int line_number;
-    unsigned int instruction_number;
-    unsigned int character_number;
-} lexer_struct;
+    uint line_number;
+    uint instruction_number;
+    uint character_number;
+} lexer_s;
 
-lexer_struct *init_lexer(char *filename, token_list_struct *token_list);
+lexer_s *init_lexer(token_list_s *token_list);
 
-void lex(lexer_struct *lexer);
+void lex(lexer_s *lexer);
 
-_Bool tokenize_line(lexer_struct *lexer);
+_Bool tokenize_line(lexer_s *lexer);
 
-void free_lexer(lexer_struct *lexer);
+void free_lexer(lexer_s *lexer);
 
 #endif // LEXER_H
